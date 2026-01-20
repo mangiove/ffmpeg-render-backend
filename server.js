@@ -81,31 +81,30 @@ app.post("/render", upload.fields([{ name: "image" }, { name: "audio" }]), async
     
 
 
+
 const args = [
   "-hide_banner","-loglevel","error","-nostdin","-y",
 
-  // INPUT: immagine + audio (senza -loop 1 sull'input)
+  // INPUT: immagine + audio (senza -loop sull'input)
   "-i", img.path,
   "-i", aud.path,
 
-  // FILTRI VIDEO:
-  // 1) loop "vero" a livello di filtro: clona all'infinito il frame
-  // 2) fps=30 per CFR stabile (evita vsync anomali)
-  // 3) scala max 720p (meno RAM sul Free) e formato compatibile player
+  // FILTRI: loop "nel filtro" + CFR stabile + scala 720p + formato compatibile
   "-filter:v",
-  "loop=loop=-1:size=1:start=0, fps=30, scale='min(1280,iw)':'min(720,ih)':force_original_aspect_ratio=decrease, format=yuv420p",
+  "loop=loop=-1:size=1:start=0,fps=10,scale='min(1280,iw)':'min(720,ih)':force_original_aspect_ratio=decrease,format=yuv420p",
 
-  // ENCODER H.264: profilo compatibile + preset rapido
+  // VIDEO: H.264 baseline, preset rapido, CRF alto, 1 thread (picchi RAM ridotti)
   "-c:v","libx264",
-  "-preset","veryfast",          // oppure "superfast" se vuoi ancora più rapidità
+  "-preset","superfast",      // o "ultrafast" se vuoi ancora più velocità
   "-tune","stillimage",
   "-profile:v","baseline",
   "-level","3.0",
   "-pix_fmt","yuv420p",
-  "-threads","1",                // picchi RAM ridotti sul Free (512 MB)
+  "-crf","28",
+  "-threads","1",
 
-  // AUDIO
-  "-c:a","aac",
+  // AUDIO: AAC standard
+  "-c:a","aac","-b:a","128k",
 
   // MUX & DURATA
   "-movflags","+faststart",
@@ -113,6 +112,7 @@ const args = [
 
   out
 ];
+
 
 
 
@@ -147,6 +147,7 @@ const args = [
 });
 
 app.listen(3000, () => console.log("Render backend running on 3000"));
+
 
 
 
