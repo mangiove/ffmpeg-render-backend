@@ -78,21 +78,26 @@ app.post("/render", upload.fields([{ name: "image" }, { name: "audio" }]), async
     //    - scala max 720p
     //    - mpeg4 + libmp3lame
     //    - threads=1, very low memory footprint
-    const args = [
-      "-hide_banner","-loglevel","error","-nostdin","-y",
-      "-loop","1","-framerate","1",
-      "-i", img.path,
-      "-i", aud.path,
-      "-vf", "scale='min(1280,iw)':'min(720,ih)':force_original_aspect_ratio=decrease",
-      "-c:v","mpeg4",
-      "-pix_fmt","yuv420p",
-      "-r","30",
-      "-threads","1",
-      "-c:a","libmp3lame",
-      "-movflags","+faststart",
-      "-shortest",
-      out
-    ];
+    
+const args = [
+  "-hide_banner","-loglevel","error","-nostdin","-y",
+  "-loop","1","-framerate","1",
+  "-i", img.path,
+  "-i", aud.path,
+  // Limita la risoluzione per contenere la RAM (Free: 512MB)
+  "-vf", "scale='min(1280,iw)':'min(720,ih)':force_original_aspect_ratio=decrease",
+  "-c:v","libx264",
+  "-profile:v","baseline",
+  "-level","3.0",
+  "-pix_fmt","yuv420p",
+  "-r","30",
+  "-threads","1",
+  "-c:a","aac",
+  "-movflags","+faststart",
+  "-shortest",
+  out
+];
+
 
     try {
       await runFfmpegToFile(args);
@@ -124,3 +129,4 @@ app.post("/render", upload.fields([{ name: "image" }, { name: "audio" }]), async
 });
 
 app.listen(3000, () => console.log("Render backend running on 3000"));
+
