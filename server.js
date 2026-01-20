@@ -82,36 +82,26 @@ app.post("/render", upload.fields([{ name: "image" }, { name: "audio" }]), async
 
 
 
+
 const args = [
   "-hide_banner","-loglevel","error","-nostdin","-y",
-
-  // INPUT: immagine + audio (senza -loop sull'input)
   "-i", img.path,
   "-i", aud.path,
-
-  // FILTRI: loop "nel filtro" + CFR stabile + scala 720p + formato compatibile
   "-filter:v",
-  "loop=loop=-1:size=1:start=0,fps=10,scale='min(1280,iw)':'min(720,ih)':force_original_aspect_ratio=decrease,format=yuv420p",
-
-  // VIDEO: H.264 baseline, preset rapido, CRF alto, 1 thread (picchi RAM ridotti)
+  "loop=loop=-1:size=1:start=0,fps=8,format=yuv420p,scale='min(720,iw)':'min(720,ih)':force_original_aspect_ratio=decrease",
   "-c:v","libx264",
-  "-preset","superfast",      // o "ultrafast" se vuoi ancora più velocità
-  "-tune","stillimage",
+  "-preset","ultrafast",
   "-profile:v","baseline",
   "-level","3.0",
+  "-crf","30",
   "-pix_fmt","yuv420p",
-  "-crf","28",
   "-threads","1",
-
-  // AUDIO: AAC standard
-  "-c:a","aac","-b:a","128k",
-
-  // MUX & DURATA
+  "-c:a","aac","-b:a","96k",
   "-movflags","+faststart",
   "-shortest",
-
   out
 ];
+
 
 
 
@@ -147,6 +137,7 @@ const args = [
 });
 
 app.listen(3000, () => console.log("Render backend running on 3000"));
+
 
 
 
